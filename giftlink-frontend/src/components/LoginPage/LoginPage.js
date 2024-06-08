@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './LoginPage.css';
 
 //Task 1: Import urlConfig from `giftlink-frontend/src/config.js`
@@ -10,6 +10,7 @@ import {useAppContext} from '../../context/AuthContext'
 //Task 3: Import useNavigate from `react-router-dom` to handle navigation after successful registration.
 import {useNavigate} from 'react-router-dom';
 
+import './LoginPage.css';
 
 function LoginPage() {
 
@@ -37,7 +38,7 @@ function LoginPage() {
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        const response = await fetch(`/api/auth/login`, {
+        const response = await fetch(`${urlConfig.backendUrl}/api/auth/login`, {
 
             //Task 7: Set method
             method: 'POST',
