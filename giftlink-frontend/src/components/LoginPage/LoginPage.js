@@ -1,6 +1,16 @@
 import React, { useState } from 'react';
 import './LoginPage.css';
 
+//Task 1: Import urlConfig from `giftlink-frontend/src/config.js`
+import {urlConfig} from '../../config';
+
+//Task 2: Import useAppContext `giftlink-frontend/context/AuthContext.js`
+import {useAppContext} from '../../context/AuthContext'
+
+//Task 3: Import useNavigate from `react-router-dom` to handle navigation after successful registration.
+import {useNavigate} from 'react-router-dom';
+
+
 function LoginPage() {
 
     //insert code here to create useState hook variables for email, password
@@ -8,11 +18,70 @@ function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
+    //Task 4: Include a state for incorrect password.
+    const [incorrect, setIncorrect] = useState('');
+
+    //Task 5: Create a local variable for `navigate`,`bearerToken`   and `setIsLoggedIn`.
+    const navigate = useNavigate();
+    const bearerToken = sessionStorage.getItem('bearer-token');
+    const {setIsLoggedIn} = useAppContext();
+
+    //Task 6. If the bearerToken has a value (user already logged in), navigate to MainPage
+    useEffect(() => {
+        if (sessionStorage.getItem('auth-token')) {
+          navigate('/app')
+        }
+    }, [navigate]);
+
     // insert code here to create handleLogin function and include console.log
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        console.log("Inside handleLogin");
+        const response = await fetch(`/api/auth/login`, {
+
+            //Task 7: Set method
+            method: 'POST',
+
+            //Task 8: Set headers
+            headers: {
+                'content-type': 'application/json',
+                'Authorization': bearerToken ? `Bearer ${bearerToken}` : ''
+            },
+
+            //Task 9: Set body to send user details
+            body: JSON.stringify({
+                email: email,
+                password: password,
+            })
+        });
+
+        // Task 2.1: Access data coming from fetch API
+        const json = await response.json();
+
+        // Task 2.5: Clear input and set an error message if the password is incorrect
+        if (json.authtoken) {
+
+            // Task 2.2: Set user details
+            sessionStorage.setItem('auth-token', json.authtoken);
+            sessionStorage.setItem('name', json.userName);
+            sessionStorage.setItem('email', json.userEmail);
+
+            // Task 2.3: Set the user's state to log in using the `useAppContext`.
+            setIsLoggedIn(true);
+
+            // Task 2.4: Navigate to the MainPage after logging in.
+            navigate('/app');
+
+        } else {
+            document.getElementById("email").value="";
+            document.getElementById("password").value="";
+            setIncorrect("Wrong password. Try again.");
+            //Below is optional, but recommended - Clear out error message after 2 seconds
+            setTimeout(() => {
+                setIncorrect("");
+            }, 2000);
+        }
+        
     }
 
         return (
@@ -44,6 +113,10 @@ function LoginPage() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                     />
+
+                    {/* Task 2,6: Display an error message to the user.*/}
+                    <span style={{color:'red',height:'.5cm',display:'block',fontStyle:'italic',fontSize:'12px'}}>{incorrect}</span>
+                
                 </div>
           {/* insert code here to create a button that performs the `handleLogin` function on click */}
                 <button className="btn btn-primary w-100 mb-3" onClick={handleLogin}>Login</button>
